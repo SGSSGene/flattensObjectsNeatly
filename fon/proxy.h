@@ -1,7 +1,6 @@
 #pragma once
 
 #include "traits.h"
-#include "adapter.h"
 
 #include <type_traits>
 #include <vector>
