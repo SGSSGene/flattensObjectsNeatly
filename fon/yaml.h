@@ -1,7 +1,8 @@
 #pragma once
 
 #include "Visitor.h"
-#include "adapter.h"
+#include "proxy.h"
+#include "traits.h"
 
 #include <cassert>
 #include <fmt/format.h>

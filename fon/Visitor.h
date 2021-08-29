@@ -1,16 +1,19 @@
 #pragma once
 
-#include "MockVisitor.h"
-#include "proxy.h"
-#include "traits.h"
-
 namespace fon {
 
-template <typename CB>
+namespace detail {
+struct FakeLambda {
+    template <typename ...Args>
+    void operator()(Args&&...) {}
+};
+}
+
+template <typename CB=detail::FakeLambda>
 struct Visitor {
     CB cb;
 
-    Visitor(CB cb) : cb{cb} {}
+    Visitor(CB cb = {}) : cb{cb} {}
 
     template <typename V>
     void operator%(V const& v) const {

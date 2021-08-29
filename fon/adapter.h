@@ -2,12 +2,6 @@
 
 #include "traits.h"
 
-#include "proxy.h"
-
-#include <vector>
-#include <map>
-#include <iostream>
-
 namespace fon {
 
 template <typename InitCB, typename EachCB>
@@ -102,7 +96,7 @@ struct map_adapter<Map<Args...> const> {
 
 
 template <typename Data>
-    requires (has_reflect_v<MockVisitor, Data>)
+    requires (has_reflect_v<::fon::Visitor<>, Data>)
 struct struct_adapter<Data> {
     Data& data;
 
@@ -160,7 +154,7 @@ struct struct_adapter<Data> {
 };
 
 template <typename Data>
-    requires (has_reflect_v<MockVisitor, Data>)
+    requires (has_reflect_v<::fon::Visitor<>, Data>)
 struct struct_adapter<Data const> {
     Data const& data;
 
