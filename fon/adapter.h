@@ -96,7 +96,7 @@ struct map_adapter<Map<Args...> const> {
 
 
 template <typename Data>
-    requires (has_reflect_v<::fon::Visitor<>, Data>)
+    requires (has_reflect_v<Data>)
 struct struct_adapter<Data> {
     Data& data;
 
@@ -154,7 +154,7 @@ struct struct_adapter<Data> {
 };
 
 template <typename Data>
-    requires (has_reflect_v<::fon::Visitor<>, Data>)
+    requires (has_reflect_v<Data>)
 struct struct_adapter<Data const> {
     Data const& data;
 

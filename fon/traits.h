@@ -24,13 +24,13 @@ template <typename Data> struct struct_adapter;
 template <typename Data> struct_adapter(Data&) -> struct_adapter<Data>;
 template <typename Data> struct_adapter(Data const&) -> struct_adapter<Data const>;
 
-template <typename Visitor, typename T>
-concept has_reflect_v = requires(Visitor visitor, T t) {
+template <typename T>
+concept has_reflect_v = requires(Visitor<> visitor, T t) {
     { T::reflect(visitor, t) };
 };
 
-template <typename Visitor, typename T>
-concept has_proxy_v = requires(Visitor visitor, T t) {
+template <typename T>
+concept has_proxy_v = requires(Visitor<> visitor, T t) {
     { proxy<T>::reflect(visitor, t) };
 };
 

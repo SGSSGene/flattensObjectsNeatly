@@ -63,7 +63,7 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
                 auto right = stackVisit(value);
                 top[left] = right;
             });
-        } else if constexpr (fon::has_proxy_v<Visitor, ValueT>) {
+        } else if constexpr (fon::has_proxy_v<ValueT>) {
             proxy<ValueT>::reflect(visitor, obj);
         } else {
             fmt::print("unknown visit(serialization): {}  -  {}\n", demangle<ValueT>(), demangle(obj));
@@ -158,7 +158,7 @@ auto deserialize(YAML::Node root) -> T {
                     auto g = StackGuard{nodeStack, top[fakeKey]};
                     visitor % value;
                 });
-            } else if constexpr (fon::has_proxy_v<Visitor, ValueT>) {
+            } else if constexpr (fon::has_proxy_v<ValueT>) {
                 proxy<ValueT>::reflect(visitor, obj);
             } else {
                 fmt::print("unknown visit (deserialization): {}  -  {}\n", demangle<ValueT>(), demangle(obj));
