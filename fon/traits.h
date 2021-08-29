@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MockVisitor.h"
+
 #include <type_traits>
 #include <string_view>
 
@@ -21,9 +23,6 @@ template <typename Data> map_adapter(Data const&) -> map_adapter<Data const>;
 template <typename Data> struct struct_adapter;
 template <typename Data> struct_adapter(Data&) -> struct_adapter<Data>;
 template <typename Data> struct_adapter(Data const&) -> struct_adapter<Data const>;
-
-
-
 
 template <typename Visitor, typename T>
 concept has_reflect_v = requires(Visitor visitor, T t) {
