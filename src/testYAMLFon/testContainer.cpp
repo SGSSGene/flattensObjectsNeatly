@@ -254,7 +254,6 @@ TEST_CASE("test yaml deserialization of std::tuple<X, Y>", "[yaml][std][tuple][d
     REQUIRE(std::get<0>(data) == "hallo welt");
     REQUIRE(std::get<1>(data) == 42);
 }
-#if 0
 TEST_CASE("test yaml serialization of std::optional", "[yaml][std][optional][serialize]") {
     auto data = std::optional<std::string>{"hallo welt"};
     auto node = fon::yaml::serialize(data);
@@ -282,7 +281,6 @@ TEST_CASE("test yaml deserialization of empty std::optional", "[yaml][std][optio
     auto data = fon::yaml::deserialize<std::optional<std::string>>(node);
     REQUIRE(not data.has_value());
 }
-#endif
 #if 0
 
 TEST_CASE("test yaml serialization of std::variant (index 0)", "[yaml][std][variant][serialize]") {

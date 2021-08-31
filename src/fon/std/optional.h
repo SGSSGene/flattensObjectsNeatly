@@ -10,15 +10,15 @@ template <typename T>
 struct proxy<std::optional<T>> {
     static constexpr void reflect(auto& visitor, auto& self) {
         visitor % fon::List{[&](size_t len) { // init write
-/*            if (len == 0 and self) {
-                self.clear();
+            if (len == 0 and self) {
+                self.reset();
             }  else if (len == 1 and !self){
                 self.emplace(getEmpty<T>());
-            }*/
+            }
         }, [&](auto& cb) { // write each element
-/*            if (self) {
+            if (self) {
                 cb(0, *self);
-            }*/
+            }
         }};
     }
 
@@ -26,9 +26,9 @@ struct proxy<std::optional<T>> {
         visitor % fon::List{[&]() { // init read
             return self?1:0;
         }, [&](auto& cb) { // read each element
-/*            if (self) {
+            if (self) {
                 cb(0, *self);
-            }*/
+            }
         }};
     }
 };
