@@ -9,11 +9,11 @@ struct FakeLambda {
 };
 }
 
-template <typename CB=detail::FakeLambda>
+template <typename CB>
 struct Visitor {
     CB cb;
 
-    Visitor(CB cb = {}) : cb{cb} {}
+    Visitor(CB cb) : cb{cb} {}
 
     template <typename V>
     void operator%(V const& v) {
@@ -28,6 +28,13 @@ struct Visitor {
         cb(*this, v);
     }
 };
+
+template <typename CB>
+Visitor(CB cb) -> Visitor<CB>;
+
+using MockVisitor = Visitor<detail::FakeLambda>;
+
+
 
 template <typename CB, typename T>
 auto visit(CB cb, T& t) {

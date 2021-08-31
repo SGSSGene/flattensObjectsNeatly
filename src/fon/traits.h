@@ -25,12 +25,12 @@ template <typename Data> struct_adapter(Data&) -> struct_adapter<Data>;
 template <typename Data> struct_adapter(Data const&) -> struct_adapter<Data const>;
 
 template <typename T>
-concept has_reflect_v = requires(Visitor<> visitor, T t) {
+concept has_reflect_v = requires(MockVisitor visitor, T t) {
     { T::reflect(visitor, t) };
 };
 
 template <typename T>
-concept has_proxy_v = requires(Visitor<> visitor, T t) {
+concept has_proxy_v = requires(MockVisitor visitor, T t) {
     { proxy<T>::reflect(visitor, t) };
 };
 
@@ -173,6 +173,52 @@ struct map_adapter<Map<Args...> const> {
 };
 
 
+namespace detail {
+
+template <typename Cb, typename Key>
+struct SubVisitor {
+    Cb const& cb;
+    Key key;
+    SubVisitor(Cb const& _cb, Key _key)
+        : cb{_cb}
+        , key{_key}
+    {}
+
+    template <typename T>
+    void operator%(T& obj) {
+        cb(key, obj);
+    }
+};
+template <typename Cb1, typename Cb2>
+struct Visitor {
+    Cb1 cb1;
+    Cb2 cb2;
+
+    Visitor(Cb1 const& _cb1, Cb2 const& _cb2)
+        : cb1{_cb1}
+        , cb2{_cb2}
+    {};
+
+    template <typename Key>
+    auto operator[](Key key) {
+        return SubVisitor{cb1, key};
+    }
+    auto operator[](std::string_view key) {
+        return SubVisitor{cb1, key};
+    }
+
+    template <typename T>
+    void operator%(T& obj) {
+        cb2(obj);
+    }
+    template <typename T>
+    void operator%(T&& obj) {
+        cb2(obj);
+    }
+};
+}
+
+
 template <has_reflect_or_proxy_v Data>
 struct struct_adapter<Data> {
     Data& data;
@@ -181,52 +227,9 @@ struct struct_adapter<Data> {
         : data{data}
     {}
 
-    template <typename Cb, typename Key>
-    struct SubVisitor {
-        Cb const& cb;
-        Key key;
-        SubVisitor(Cb const& _cb, Key _key)
-            : cb{_cb}
-            , key{_key}
-        {}
-
-        template <typename T>
-        void operator%(T& obj) {
-            cb(key, obj);
-        }
-    };
-    template <typename Cb1, typename Cb2>
-    struct Visitor {
-        Cb1 cb1;
-        Cb2 cb2;
-
-        Visitor(Cb1 const& _cb1, Cb2 const& _cb2)
-            : cb1{_cb1}
-            , cb2{_cb2}
-        {};
-
-        template <typename Key>
-        auto operator[](Key key) {
-            return SubVisitor{cb1, key};
-        }
-        auto operator[](std::string_view key) {
-            return SubVisitor{cb1, key};
-        }
-
-        template <typename T>
-        void operator%(T& obj) {
-            cb2(obj);
-        }
-        template <typename T>
-        void operator%(T&& obj) {
-            cb2(obj);
-        }
-
-
-    };
 
     void visit(auto cb1, auto cb2) {
-        Visitor visitor{[&](auto& key, auto& value) {
+        detail::Visitor visitor{[&](auto& key, auto& value) {
             cb1(key, value);
         }, [&](auto& value) {
             cb2(value);
@@ -252,50 +255,8 @@ struct struct_adapter<Data const> {
         return 0;
     }
 
-    template <typename Cb, typename Key>
-    struct SubVisitor {
-        Cb const& cb;
-        Key key;
-        SubVisitor(Cb const& _cb, Key _key)
-            : cb{_cb}
-            , key{_key}
-        {}
-
-        template <typename T>
-        void operator%(T& obj) {
-            cb(key, obj);
-        }
-    };
-    template <typename Cb1, typename Cb2>
-    struct Visitor {
-        Cb1 cb1;
-        Cb2 cb2;
-
-        Visitor(Cb1 const& _cb1, Cb2 const& _cb2)
-            : cb1{_cb1}
-            , cb2{_cb2}
-        {};
-
-        template <typename Key>
-        auto operator[](Key key) {
-            return SubVisitor{cb1, key};
-        }
-        auto operator[](std::string_view key) {
-            return SubVisitor{cb1, key};
-        }
-
-        template <typename T>
-        void operator%(T& obj) {
-            cb2(obj);
-        }
-        template <typename T>
-        void operator%(T&& obj) {
-            cb2(obj);
-        }
-    };
-
     void visit(auto cb1, auto cb2) {
-        Visitor visitor{[&](auto& key, auto& value) {
+        detail::Visitor visitor{[&](auto& key, auto& value) {
             cb1(key, value);
         }, [&](auto& value) {
             cb2(value);
@@ -307,6 +268,5 @@ struct struct_adapter<Data const> {
         }
     }
 };
-
 
 }

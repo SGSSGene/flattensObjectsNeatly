@@ -107,19 +107,6 @@ int main() {
     }
     a.d.x += 1000;
 
-    {
-        using L = decltype(fon::List{[](size_t) {}, [](auto cb) {}});
-        static_assert(fon::has_list_adapter_v<L>);
-        using L2 = decltype(fon::List{[]() { return size_t{}; }, [](auto cb) {}});
-        static_assert(fon::has_list_adapter_v<L2>);
-    }
-    {
-        using L = decltype(fon::Map{[](size_t) {}, [](auto cb) {}});
-        static_assert(fon::has_map_adapter_v<L>);
-        using L2 = decltype(fon::Map{[]() { return size_t{}; }, [](auto cb) {}});
-        static_assert(fon::has_map_adapter_v<L2>);
-    }
-
     static_assert(fon::has_struct_adapter_v<B>);
 
 //    static_assert(fon::has_list_adapter_v<std::set<int>>);
