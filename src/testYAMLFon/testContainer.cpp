@@ -374,7 +374,6 @@ TEST_CASE("test yaml deserialization of std::set<std::filesystem::path>", "[yaml
     REQUIRE(data.size() == 1);
     REQUIRE(*data.begin() == "./some_file");
 }
-#if 0
 
 TEST_CASE("test yaml serialization of std::chrono::time_point<ms>", "[yaml][std][chrono][time_point][serialize]") {
     auto data = std::chrono::time_point<std::chrono::milliseconds>(std::chrono::milliseconds{42});
@@ -439,4 +438,3 @@ TEST_CASE("test yaml deserialization of std::chrono::duration", "[yaml][std][chr
     auto data = fon::yaml::deserialize<duration>(node);
     REQUIRE(data == (42ms - 20ms));
 }
-#endif
