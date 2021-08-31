@@ -26,24 +26,6 @@ struct proxy<T> {
     }
 };
 
-/*template <typename T, typename ...Args>
-struct proxy<std::vector<T, Args...>> {
-    static constexpr void reflect(auto& visitor, auto& self) {
-        self.clear();
-        self.resize(visitor.size(), getEmpty<T>());
-        for (size_t i{0}; i < visitor.size(); ++i) {
-            visitor.visit(i, self[i]);
-        }
-    }
-
-    static constexpr void reflect(auto& visitor, auto const& self) {
-        visitor(self.size());
-        for (size_t i{0}; i < self.size(); ++i) {
-            visitor.visit(i, self[i]);
-        }
-    }
-};*/
-
 template <typename T, typename ...Args>
 struct proxy<std::vector<T, Args...>> {
     static constexpr void reflect(auto& visitor, auto& self) {
