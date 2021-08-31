@@ -18,8 +18,6 @@ template <typename T>
 auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
     auto& input = _input;
 
-/*    std::vector<YAML::Node> stack;
-    stack.emplace_back();*/
     YAML::Node top;
     fon::visit([&]<typename Visitor, typename ValueT>(Visitor& visitor, ValueT const& obj) {
 
