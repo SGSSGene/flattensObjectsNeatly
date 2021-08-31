@@ -13,4 +13,5 @@
 #include "unordered_map.h"
 #include "unordered_set.h"
 #include "utility.h"
+#include "variant.h"
 #include "vector.h"
