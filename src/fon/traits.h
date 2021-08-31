@@ -35,6 +35,9 @@ concept has_proxy_v = requires(Visitor<> visitor, T t) {
 };
 
 template <typename T>
+concept has_reflect_or_proxy_v = has_reflect_v<T> || has_proxy_v<T>;
+
+template <typename T>
 concept has_list_adapter_v = requires(T t, size_t l) {
     { list_adapter<T>{t, l} };
     { list_adapter<T const>{t} };
@@ -170,7 +173,7 @@ struct map_adapter<Map<Args...> const> {
 };
 
 
-template <has_reflect_v Data>
+template <has_reflect_or_proxy_v Data>
 struct struct_adapter<Data> {
     Data& data;
 
@@ -214,20 +217,30 @@ struct struct_adapter<Data> {
         void operator%(T& obj) {
             cb2(obj);
         }
+        template <typename T>
+        void operator%(T&& obj) {
+            cb2(obj);
+        }
+
+
     };
 
-    void visit(auto cb) {
+    void visit(auto cb1, auto cb2) {
         Visitor visitor{[&](auto& key, auto& value) {
-            cb(key, value);
+            cb1(key, value);
         }, [&](auto& value) {
-            cb(value);
+            cb2(value);
         }};
-        Data::reflect(visitor, data);
+        if constexpr (fon::has_proxy_v<Data>) {
+            proxy<Data>::reflect(visitor, data);
+        } else {
+            Data::reflect(visitor, data);
+        }
     }
 
 };
 
-template <has_reflect_v Data>
+template <has_reflect_or_proxy_v Data>
 struct struct_adapter<Data const> {
     Data const& data;
 
@@ -275,15 +288,23 @@ struct struct_adapter<Data const> {
         void operator%(T& obj) {
             cb2(obj);
         }
+        template <typename T>
+        void operator%(T&& obj) {
+            cb2(obj);
+        }
     };
 
-    void visit(auto cb) {
+    void visit(auto cb1, auto cb2) {
         Visitor visitor{[&](auto& key, auto& value) {
-            cb(key, value);
+            cb1(key, value);
         }, [&](auto& value) {
-            cb(value);
+            cb2(value);
         }};
-        Data::reflect(visitor, data);
+        if constexpr (fon::has_proxy_v<Data>) {
+            proxy<Data>::reflect(visitor, data);
+        } else {
+            Data::reflect(visitor, data);
+        }
     }
 };
 

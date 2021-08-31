@@ -16,15 +16,15 @@ struct Visitor {
     Visitor(CB cb = {}) : cb{cb} {}
 
     template <typename V>
-    void operator%(V const& v) const {
+    void operator%(V const& v) {
         cb(*this, v);
     }
     template <typename V>
-    void operator%(V& v) const {
+    void operator%(V& v) {
         cb(*this, v);
     }
     template <typename V>
-    void operator%(V&& v) const {
+    void operator%(V&& v) {
         cb(*this, v);
     }
 };

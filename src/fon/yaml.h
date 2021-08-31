@@ -43,7 +43,7 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
             top = std::string{obj};
         } else if constexpr (fon::has_list_adapter_v<ValueT>) {
             auto adapter = fon::list_adapter{obj};
-            adapter.visit([&](auto& key, auto& value) {
+            adapter.visit([&](size_t key, auto& value) {
                 auto right = stackVisit(value);
                 top.push_back(right);
             });
@@ -60,9 +60,11 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
                 auto left  = stackVisit(key);
                 auto right = stackVisit(value);
                 top[left] = right;
+            }, [&](auto& value) {
+                top = stackVisit(value);
             });
-        } else if constexpr (fon::has_proxy_v<ValueT>) {
-            proxy<ValueT>::reflect(visitor, obj);
+/*        } else if constexpr (fon::has_proxy_v<ValueT>) {
+            proxy<ValueT>::reflect(visitor, obj);*/
         } else {
             fmt::print("unknown visit(serialization): {}  -  {}\n", demangle<ValueT>(), demangle(obj));
         }
@@ -154,6 +156,8 @@ auto deserialize(YAML::Node root) -> T {
                         return std::string{emit.c_str()};
                     }();
                     auto g = StackGuard{nodeStack, top[fakeKey]};
+                    visitor % value;
+                }, [&](auto& value) {
                     visitor % value;
                 });
             } else if constexpr (fon::has_proxy_v<ValueT>) {
