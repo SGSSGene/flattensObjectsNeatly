@@ -5,7 +5,6 @@
 #include "traits.h"
 
 #include <cassert>
-#include <fmt/format.h>
 #include <tuple>
 #include <yaml-cpp/yaml.h>
 #include "demangle/demangle.h"
@@ -63,10 +62,10 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
             }, [&](auto& value) {
                 top = stackVisit(value);
             });
-/*        } else if constexpr (fon::has_proxy_v<ValueT>) {
-            proxy<ValueT>::reflect(visitor, obj);*/
         } else {
-            fmt::print("unknown visit(serialization): {}  -  {}\n", demangle<ValueT>(), demangle(obj));
+            []<bool flag = false>() {
+                static_assert(fon::has_reflect_v<ValueT>, "fon: reflect or proxy missing (serialization)");
+            }();
         }
     }, input);
 
@@ -160,10 +159,10 @@ auto deserialize(YAML::Node root) -> T {
                 }, [&](auto& value) {
                     visitor % value;
                 });
-            } else if constexpr (fon::has_proxy_v<ValueT>) {
-                proxy<ValueT>::reflect(visitor, obj);
             } else {
-                fmt::print("unknown visit (deserialization): {}  -  {}\n", demangle<ValueT>(), demangle(obj));
+                []<bool flag = false>() {
+                    static_assert(fon::has_reflect_v<ValueT>, "fon: reflect or proxy missing (deserialization)");
+                }();
             }
         } catch(yaml_error const&) {
             throw;
