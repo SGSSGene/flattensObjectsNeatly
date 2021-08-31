@@ -339,7 +339,6 @@ TEST_CASE("test yaml deserialization of std::variant (index 2)", "[yaml][std][va
     REQUIRE(data.index() == 2);
     REQUIRE(std::get<2>(data) == true);
 }
-#if 0
 
 TEST_CASE("test yaml serialization of std::filesystem::path", "[yaml][std][filesystem][path][serialize]") {
     auto data = std::filesystem::path{"./myfile.txt"};
@@ -375,7 +374,6 @@ TEST_CASE("test yaml deserialization of std::set<std::filesystem::path>", "[yaml
     REQUIRE(data.size() == 1);
     REQUIRE(*data.begin() == "./some_file");
 }
-#endif
 #if 0
 
 TEST_CASE("test yaml serialization of std::chrono::time_point<ms>", "[yaml][std][chrono][time_point][serialize]") {
