@@ -12,9 +12,12 @@ void filter(CB cb, T const& t) {
     std::vector<std::string> keys;
     fon::visit([&]<typename Visitor, typename ValueT>(Visitor& visitor, ValueT& obj) {
 
-        if constexpr (std::is_same_v<ValueT, Target const> || std::is_same_v<ValueT, Target>) {
+        if constexpr (std::is_same_v<ValueT, Target const>
+                      || std::is_same_v<ValueT, Target>
+                      || std::is_base_of_v<Target, ValueT>
+                      || std::is_base_of_v<Target const, ValueT>) {
             //!TODO How can we do this without const_cast and breaking many rules :-(
-            cb(keys, const_cast<Target&>(obj));
+            cb(keys, const_cast<Target&>(static_cast<Target const&>(obj)));
         } else if constexpr (std::is_arithmetic_v<ValueT>
                       or std::is_same_v<std::string, ValueT>) {
             // leaf
