@@ -224,29 +224,3 @@ using details::serialize;
 using details::deserialize;
 
 }
-
-/*namespace fon {
-
-// convertible
-template <typename Node>
-struct convert<Node, ::YAML::Node> {
-    static constexpr Type type = Type::Convertible;
-    template <typename Node2>
-    static void access(Node2& node, YAML::Node& obj) {
-        std::stringstream ss;
-        ss << obj;
-        auto val = ss.str();
-        node % val;
-        obj = val;
-    }
-
-    template <typename Node2>
-    static void access(Node2& node, YAML::Node const& obj) {
-        std::stringstream ss;
-        ss << obj;
-        auto val = ss.str();
-        return node % val;
-    }
-};
-
-}*/
