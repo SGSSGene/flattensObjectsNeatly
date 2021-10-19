@@ -8,7 +8,6 @@
 #include <cassert>
 #include <tuple>
 #include <yaml-cpp/yaml.h>
-#include "demangle/demangle.h"
 
 namespace fon::yaml {
 
