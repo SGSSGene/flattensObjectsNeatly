@@ -29,16 +29,11 @@ struct Visitor {
     }
 };
 
-template <typename CB>
-Visitor(CB cb) -> Visitor<CB>;
-
 using MockVisitor = Visitor<detail::FakeLambda>;
-
-
 
 template <typename CB, typename T>
 auto visit(CB cb, T& t) {
-    fon::Visitor visitor{cb};
+    auto visitor = Visitor<CB>{cb};
     return visitor % t;
 }
 

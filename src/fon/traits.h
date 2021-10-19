@@ -2,8 +2,9 @@
 
 #include "Visitor.h"
 
-#include <type_traits>
+#include <memory>
 #include <string_view>
+#include <type_traits>
 
 namespace fon {
 
@@ -83,6 +84,20 @@ auto getEmpty() -> T {
         return T{};
     }
 }
+template <typename T>
+auto makeEmpty() -> std::unique_ptr<T> {
+    static_assert(std::is_constructible_v<T, ctor> or std::is_constructible_v<T>,
+        "object is not constructible");
+
+    if constexpr (std::is_constructible_v<T, ctor> and not std::is_arithmetic_v<T>) {
+        return std::make_unique<T>(ctor{});
+    } else if constexpr (std::is_constructible_v<T>) {
+        return std::make_unique<T>();
+    } else {
+        return std::make_unique<T>();
+    }
+}
+
 
 template <typename InitCB, typename EachCB>
 struct List {

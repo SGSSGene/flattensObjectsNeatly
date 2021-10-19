@@ -3,6 +3,7 @@
 #include "Visitor.h"
 #include "proxy.h"
 #include "traits.h"
+#include "utils.h"
 
 #include <cassert>
 #include <tuple>
@@ -13,11 +14,22 @@ namespace fon::yaml {
 
 namespace details {
 
+struct Pointer {
+    virtual ~Pointer() {}
+};
+template <typename T>
+struct PointerT : Pointer {
+    T const* ptr;
+};
+
 template <typename T>
 auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
     auto& input = _input;
 
     YAML::Node top;
+
+    std::vector<std::unique_ptr<Pointer>> pointers;
+
     fon::visit([&]<typename Visitor, typename ValueT>(Visitor& visitor, ValueT const& obj) {
 
         auto stackVisit = [&](auto& obj) {
@@ -62,6 +74,17 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
             }, [&](auto& value) {
                 top = stackVisit(value);
             });
+        } else if constexpr (std::is_pointer_v<ValueT>) {
+            using UT = std::remove_pointer_t<ValueT>;
+            fon::filter<UT>([&](auto& keys, auto& obj2) {
+                if (&obj2 == obj) {
+                    std::string key;
+                    for (auto const& k : keys) {
+                        key += "/" + k;
+                    }
+                    top = key;
+                }
+            }, _input);
         } else {
             []<bool flag = false>() {
                 static_assert(fon::has_reflect_v<ValueT>, "fon: reflect or proxy missing (serialization)");
@@ -70,7 +93,6 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
     }, input);
 
     return top;
-//    return root;
 }
 
 
@@ -102,6 +124,8 @@ auto deserialize(YAML::Node root) -> T {
 
     auto res = getEmpty<T>();
     std::vector<YAML::Node> nodeStack{root};
+
+    std::vector<std::function<void()>> fixPointers;
     visit([&]<typename Visitor, typename ValueT>(Visitor& visitor, ValueT& obj) {
         auto top = nodeStack.back();
 
@@ -148,6 +172,7 @@ auto deserialize(YAML::Node root) -> T {
             } else if constexpr (fon::has_struct_adapter_v<ValueT>) {
                 auto adapter = fon::struct_adapter{obj};
                 adapter.visit([&](auto& key, auto& value) {
+                    //!TODO
                     //!WORKAROUND for bug: https://github.com/jbeder/yaml-cpp/issues/979
                     auto fakeKey = [&]() {
                         YAML::Emitter emit;
@@ -159,6 +184,21 @@ auto deserialize(YAML::Node root) -> T {
                 }, [&](auto& value) {
                     visitor % value;
                 });
+            } else if constexpr (std::is_pointer_v<ValueT>) {
+                std::string key = top.as<std::string>();
+                fixPointers.push_back([&, key]() {
+                    using UT = std::remove_pointer_t<ValueT>;
+                    fon::filter<UT>([&]<typename Obj2>(auto& keys, Obj2 const& obj2) {
+                        std::string key2;
+                        for (auto const& k : keys) {
+                            key2 += "/" + k;
+                        }
+                        if (key2 == key) {
+                            obj = &const_cast<Obj2&>(obj2);
+                        }
+                    }, res);
+                });
+                // must be done later
             } else {
                 []<bool flag = false>() {
                     static_assert(fon::has_reflect_v<ValueT>, "fon: reflect or proxy missing (deserialization)");
@@ -170,6 +210,11 @@ auto deserialize(YAML::Node root) -> T {
             std::throw_with_nested(yaml_error("error reading yaml file ", top));
         }
     }, res);
+
+    // add missing pointers
+    for (auto& f : fixPointers) {
+        f();
+    }
 
     return res;
 }

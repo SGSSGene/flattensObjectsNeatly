@@ -7,6 +7,7 @@
 #include "forward_list.h"
 #include "list.h"
 #include "map.h"
+#include "memory.h"
 #include "optional.h"
 #include "set.h"
 #include "tuple.h"
