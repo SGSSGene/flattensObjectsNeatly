@@ -98,7 +98,7 @@ auto deserialize(std::vector<std::byte> buffer) -> T {
         std::memcpy(&obj, &buffer[index], sizeof(obj));
         index += sizeof(obj);
     };
-    auto readContigous = [&](auto& begin, size_t len) {
+    auto readContigous = [&](auto begin, size_t len) {
         std::memcpy(begin, &buffer[index], len);
         index += len;
     };
@@ -110,7 +110,7 @@ auto deserialize(std::vector<std::byte> buffer) -> T {
     visit([&]<typename Visitor, typename ValueT>(Visitor& visitor, ValueT& obj) {
         if constexpr (std::is_arithmetic_v<ValueT>) {
             readValue(obj);
-        } else if (std::is_same_v<std::string, ValueT>) {
+        } else if constexpr (std::is_same_v<std::string, ValueT>) {
             auto len = readSize();
             obj.resize(len);
             readContigous(&obj[0], len);
