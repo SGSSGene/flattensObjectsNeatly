@@ -419,49 +419,93 @@ TEST_CASE("test binary deserialization of std::pair", "[yaml][std][pair][deseria
     REQUIRE(data.first == "hallo welt");
     REQUIRE(data.second == 42);
 }
-/*TEST_CASE("test binary serialization of std::tuple<>", "[yaml][std][tuple][serialize]") {
+
+TEST_CASE("test binary serialization of std::tuple<>", "[yaml][std][tuple][serialize]") {
     auto data = std::tuple<>{};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.size() == 0);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{};
+    REQUIRE(expected == buffer);
 }
+
 TEST_CASE("test binary deserialization of std::tuple<>", "[yaml][std][tuple][deserialize]") {
-    binary::Node node;
-    auto data = fon::binary::deserialize<std::tuple<>>(node);
-    (void)data;
+    auto input = std::vector<std::byte>{};
+    auto data = fon::binary::deserialize<std::tuple<>>(input);
+
+    REQUIRE(data == std::tuple<>{});
 }
 
 TEST_CASE("test binary serialization of std::tuple<X>", "[yaml][std][tuple][serialize]") {
     auto data = std::tuple<std::string> {"hallo welt"};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsMap());
-    REQUIRE(node.size() == 1);
-    REQUIRE(node[0].as<std::string>() == "hallo welt");
-}
-TEST_CASE("test binary deserialization of std::tuple<X>", "[yaml][std][tuple][deserialize]") {
-    binary::Node node;
-    node[0] = "hallo welt";
-    auto data = fon::binary::deserialize<std::tuple<std::string>>(node);
-    REQUIRE(std::get<0>(data) == "hallo welt");
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[0].key
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[0].value.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // tuple[0].value
+        std::byte{'o'},  std::byte{' '},  std::byte{'w'},  std::byte{'e'},
+        std::byte{'l'},  std::byte{'t'},
+    };
+
+    REQUIRE(buffer == expected);
 }
 
+TEST_CASE("test binary deserialization of std::tuple<X>", "[yaml][std][tuple][deserialize]") {
+    auto input = std::vector<std::byte>{
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[0].key
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[0].value.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // tuple[0].value
+        std::byte{'o'},  std::byte{' '},  std::byte{'w'},  std::byte{'e'},
+        std::byte{'l'},  std::byte{'t'},
+    };
+
+    auto data = fon::binary::deserialize<std::tuple<std::string>>(input);
+    REQUIRE(std::get<0>(data) == "hallo welt");
+}
 
 TEST_CASE("test binary serialization of std::tuple<X, Y>", "[yaml][std][tuple][serialize]") {
     auto data = std::tuple<std::string, int32_t>{"hallo welt", 42};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsMap());
-    REQUIRE(node.size() == 2);
-    REQUIRE(node[0].as<std::string>() == "hallo welt");
-    REQUIRE(node[1].as<int32_t>() == 42);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[0].key
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[0].value.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // tuple[0].value
+        std::byte{'o'},  std::byte{' '},  std::byte{'w'},  std::byte{'e'},
+        std::byte{'l'},  std::byte{'t'},
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[1].key
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[1].value
+    };
+
+    REQUIRE(buffer == expected);
 }
+
 TEST_CASE("test binary deserialization of std::tuple<X, Y>", "[yaml][std][tuple][deserialize]") {
-    binary::Node node;
-    node[0] = "hallo welt";
-    node[1] = 42;
-    auto data = fon::binary::deserialize<std::tuple<std::string, int32_t>>(node);
+   auto input = std::vector<std::byte>{
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[0].key
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[0].value.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // tuple[0].value
+        std::byte{'o'},  std::byte{' '},  std::byte{'w'},  std::byte{'e'},
+        std::byte{'l'},  std::byte{'t'},
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[1].key
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // tuple[1].value
+    };
+
+    auto data = fon::binary::deserialize<std::tuple<std::string, int32_t>>(input);
     REQUIRE(std::get<0>(data) == "hallo welt");
     REQUIRE(std::get<1>(data) == 42);
 }
-TEST_CASE("test binary serialization of std::optional", "[yaml][std][optional][serialize]") {
+/*TEST_CASE("test binary serialization of std::optional", "[yaml][std][optional][serialize]") {
     auto data = std::optional<std::string>{"hallo welt"};
     auto node = fon::binary::serialize(data);
     REQUIRE(node.IsSequence());

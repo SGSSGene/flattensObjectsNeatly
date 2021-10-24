@@ -220,7 +220,7 @@ TEST_CASE("test yaml serialization of std::tuple<>", "[yaml][std][tuple][seriali
 TEST_CASE("test yaml deserialization of std::tuple<>", "[yaml][std][tuple][deserialize]") {
     YAML::Node node;
     auto data = fon::yaml::deserialize<std::tuple<>>(node);
-    (void)data;
+    REQUIRE(data == std::tuple<>{});
 }
 
 TEST_CASE("test yaml serialization of std::tuple<X>", "[yaml][std][tuple][serialize]") {
