@@ -25,7 +25,6 @@ TEST_CASE("test yaml serialization of raw pointers", "[yaml][raw][pointer][seria
     REQUIRE(node["ptr"].as<std::string>() == "/xs/1");
 }
 
-
 TEST_CASE("test yaml deserialization of raw pointers", "[yaml][raw][pointer][deserialize]") {
     YAML::Node node;
     node["xs"][0] = 10;
@@ -38,11 +37,21 @@ TEST_CASE("test yaml deserialization of raw pointers", "[yaml][raw][pointer][des
     REQUIRE(data.xs == (std::vector<int32_t>{10, 20, 30}));
     REQUIRE(data.ptr == &data.xs[1]);
 }
+
 TEST_CASE("test yaml serialization of unique_ptr pointers", "[yaml][std][unique_ptr][pointer][serialize]") {
     auto data = std::make_unique<int32_t>(42);
     auto node = fon::yaml::serialize(data);
     REQUIRE(node.IsSequence());
     CHECK(node[0].as<int32_t>() == 42);
+}
+
+TEST_CASE("test yaml deserialization of unique_ptr pointers", "[yaml][std][unique_ptr][pointer][deserialize]") {
+    YAML::Node node;
+    node[0] = 42;
+
+    auto data = fon::yaml::deserialize<std::unique_ptr<int32_t>>(node);
+    REQUIRE(data);
+    CHECK(*data == 42);
 }
 
 struct B {
