@@ -505,35 +505,63 @@ TEST_CASE("test binary deserialization of std::tuple<X, Y>", "[yaml][std][tuple]
     REQUIRE(std::get<0>(data) == "hallo welt");
     REQUIRE(std::get<1>(data) == 42);
 }
-/*TEST_CASE("test binary serialization of std::optional", "[yaml][std][optional][serialize]") {
+
+TEST_CASE("test binary serialization of std::optional", "[yaml][std][optional][serialize]") {
     auto data = std::optional<std::string>{"hallo welt"};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 1);
-    REQUIRE(node[0].IsScalar());
-    REQUIRE(node[0].as<std::string>() == "hallo welt");
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // list[0]
+        std::byte{'o'},  std::byte{' '},  std::byte{'w'},  std::byte{'e'},
+        std::byte{'l'},  std::byte{'t'},
+    };
+
+    REQUIRE(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::optional", "[yaml][std][optional][deserialize]") {
-    binary::Node node;
-    node[0] = "hallo welt";
-    auto data = fon::binary::deserialize<std::optional<std::string>>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // list[0]
+        std::byte{'o'},  std::byte{' '},  std::byte{'w'},  std::byte{'e'},
+        std::byte{'l'},  std::byte{'t'},
+    };
+
+    auto data = fon::binary::deserialize<std::optional<std::string>>(input);
     REQUIRE(data.has_value());
-    REQUIRE(data.value() == "hallo welt");
+    auto expected = std::string{"hallo welt"};
+    CHECK(data.value() == expected);
 }
 
 TEST_CASE("test binary serialization of empty std::optional", "[yaml][std][optional][serialize]") {
     auto data = std::optional<std::string>{};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.size() == 0);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+
+    REQUIRE(buffer == expected);
 }
 TEST_CASE("test binary deserialization of empty std::optional", "[yaml][std][optional][deserialize]") {
-    binary::Node node;
-    auto data = fon::binary::deserialize<std::optional<std::string>>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+
+    auto data = fon::binary::deserialize<std::optional<std::string>>(input);
     REQUIRE(not data.has_value());
 }
 
-TEST_CASE("test binary serialization of std::variant (index 0)", "[yaml][std][variant][serialize]") {
+/*TEST_CASE("test binary serialization of std::variant (index 0)", "[yaml][std][variant][serialize]") {
     auto data = std::variant<std::string, int32_t, bool>{std::string{"hallo welt"}};
     auto node = fon::binary::serialize(data);
 
