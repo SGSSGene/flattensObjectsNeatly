@@ -51,7 +51,7 @@ void filter(CB cb, T const& t) {
             // leaf
         } else {
             []<bool flag = false>() {
-                static_assert(fon::has_reflect_v<ValueT>, "fon: reflect or proxy missing (serialization)");
+                static_assert(fon::has_reflect_v<ValueT>, "fon: reflect or proxy missing (filter)");
             }();
         }
     }, t);

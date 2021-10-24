@@ -81,7 +81,6 @@ auto serialize(T const& _input, std::vector<std::byte> buffer = {}) -> std::vect
     return buffer;
 }
 
-
 template <typename T>
 auto deserialize(std::vector<std::byte> buffer) -> T {
 
@@ -101,6 +100,11 @@ auto deserialize(std::vector<std::byte> buffer) -> T {
     auto readContigous = [&](auto begin, size_t len) {
         std::memcpy(begin, &buffer[index], len);
         index += len;
+    };
+    auto cmpContigous = [&](auto begin, size_t len) {
+        auto res = std::memcmp(begin, &buffer[index], len);
+        index += len;
+        return res;
     };
 
 
@@ -130,7 +134,13 @@ auto deserialize(std::vector<std::byte> buffer) -> T {
         } else if constexpr (fon::has_struct_adapter_v<ValueT>) {
             auto adapter = fon::struct_adapter{obj};
             adapter.visit([&](auto& key, auto& value) {
-                visitor % key;
+                 //!TODO currently the order has to be the same
+                auto expectedKey = serialize(key);
+
+                auto diff = cmpContigous(&expectedKey[0], expectedKey.size());
+                if (diff != 0) {
+                    throw std::runtime_error("found unexpected key when deserializing");
+                }
                 visitor % value;
             }, [&](auto& value) {
                 visitor % value;

@@ -561,65 +561,138 @@ TEST_CASE("test binary deserialization of empty std::optional", "[yaml][std][opt
     REQUIRE(not data.has_value());
 }
 
-/*TEST_CASE("test binary serialization of std::variant (index 0)", "[yaml][std][variant][serialize]") {
+TEST_CASE("test binary serialization of std::variant (index 0)", "[yaml][std][variant][serialize]") {
     auto data = std::variant<std::string, int32_t, bool>{std::string{"hallo welt"}};
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
 
-    REQUIRE(node.IsMap());
-    REQUIRE(node.size() == 2);
-
-    REQUIRE(node["index"].IsScalar());
-    REQUIRE(node["index"].as<size_t>() == 0);
-    REQUIRE(node["value"].as<std::string>() == "hallo welt");
+    auto expected = std::vector<std::byte>{
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
+        std::byte{'x'},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
+        std::byte{'e'},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // map[1].value
+        std::byte{'o'},  std::byte{' '},  std::byte{'w'},  std::byte{'e'},
+        std::byte{'l'},  std::byte{'t'},
+    };
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
+
 TEST_CASE("test binary deserialization of std::variant (index 0)", "[yaml][std][variant][deserialize]") {
-    binary::Node node {YAML::NodeType::Map};
-    node["index"] = 0;
-    node["value"] = "hallo welt";
-    auto data = fon::binary::deserialize<std::variant<std::string, int32_t, bool>>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
+        std::byte{'x'},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
+        std::byte{'e'},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // map[1].value
+        std::byte{'o'},  std::byte{' '},  std::byte{'w'},  std::byte{'e'},
+        std::byte{'l'},  std::byte{'t'},
+    };
+    auto data = fon::binary::deserialize<std::variant<std::string, int32_t, bool>>(input);
+
     REQUIRE(data.index() == 0);
     REQUIRE(std::get<0>(data) == "hallo welt");
 }
 
 TEST_CASE("test binary serialization of std::variant (index 1)", "[yaml][std][variant][serialize]") {
     auto data = std::variant<std::string, int32_t, bool>{int32_t{42}};
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
 
-    REQUIRE(node.IsMap());
-    REQUIRE(node.size() == 2);
-
-    REQUIRE(node["index"].as<size_t>() == 1);
-    REQUIRE(node["value"].as<int32_t>() == 42);
+    auto expected = std::vector<std::byte>{
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
+        std::byte{'x'},
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
+        std::byte{'e'},
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+    };
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
+
 TEST_CASE("test binary deserialization of std::variant (index 1)", "[yaml][std][variant][deserialize]") {
-    binary::Node node {YAML::NodeType::Map};
-    node["index"] = 1;
-    node["value"] = 42;
-    auto data = fon::binary::deserialize<std::variant<std::string, int32_t, bool>>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
+        std::byte{'x'},
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
+        std::byte{'e'},
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+    };
+
+    auto data = fon::binary::deserialize<std::variant<std::string, int32_t, bool>>(input);
     REQUIRE(data.index() == 1);
     REQUIRE(std::get<1>(data) == 42);
 }
 
 TEST_CASE("test binary serialization of std::variant (index 2)", "[yaml][std][variant][serialize]") {
     auto data = std::variant<std::string, int32_t, bool>{true};
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
 
-    REQUIRE(node.IsMap());
-    REQUIRE(node.size() == 2);
-
-    REQUIRE(node["index"].as<size_t>() == 2);
-    REQUIRE(node["value"].as<bool>() == true);
+    auto expected = std::vector<std::byte>{
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
+        std::byte{'x'},
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
+        std::byte{'e'},
+        std::byte{0x01}, // map[1].value
+    };
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
+
 TEST_CASE("test binary deserialization of std::variant (index 2)", "[yaml][std][variant][deserialize]") {
-    binary::Node node {YAML::NodeType::Map};
-    node["index"] = 2;
-    node["value"] = true;
-    auto data = fon::binary::deserialize<std::variant<std::string, int32_t, bool>>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
+        std::byte{'x'},
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
+        std::byte{'e'},
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+    };
+
+    auto data = fon::binary::deserialize<std::variant<std::string, int32_t, bool>>(input);
     REQUIRE(data.index() == 2);
     REQUIRE(std::get<2>(data) == true);
 }
 
-TEST_CASE("test binary serialization of std::filesystem::path", "[yaml][std][filesystem][path][serialize]") {
+/*TEST_CASE("test binary serialization of std::filesystem::path", "[yaml][std][filesystem][path][serialize]") {
     auto data = std::filesystem::path{"./myfile.txt"};
     auto node = fon::binary::serialize(data);
 
