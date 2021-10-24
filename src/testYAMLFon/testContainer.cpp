@@ -289,14 +289,14 @@ TEST_CASE("test yaml serialization of std::variant (index 0)", "[yaml][std][vari
     REQUIRE(node.IsMap());
     REQUIRE(node.size() == 2);
 
-    REQUIRE(node["index"].IsScalar());
-    REQUIRE(node["index"].as<size_t>() == 0);
-    REQUIRE(node["value"].as<std::string>() == "hallo welt");
+    REQUIRE(node[0].IsScalar());
+    REQUIRE(node[0].as<size_t>() == 0);
+    REQUIRE(node[1].as<std::string>() == "hallo welt");
 }
 TEST_CASE("test yaml deserialization of std::variant (index 0)", "[yaml][std][variant][deserialize]") {
     YAML::Node node {YAML::NodeType::Map};
-    node["index"] = 0;
-    node["value"] = "hallo welt";
+    node[0] = 0;
+    node[1] = "hallo welt";
     auto data = fon::yaml::deserialize<std::variant<std::string, int32_t, bool>>(node);
     REQUIRE(data.index() == 0);
     REQUIRE(std::get<0>(data) == "hallo welt");
@@ -309,13 +309,13 @@ TEST_CASE("test yaml serialization of std::variant (index 1)", "[yaml][std][vari
     REQUIRE(node.IsMap());
     REQUIRE(node.size() == 2);
 
-    REQUIRE(node["index"].as<size_t>() == 1);
-    REQUIRE(node["value"].as<int32_t>() == 42);
+    REQUIRE(node[0].as<size_t>() == 1);
+    REQUIRE(node[1].as<int32_t>() == 42);
 }
 TEST_CASE("test yaml deserialization of std::variant (index 1)", "[yaml][std][variant][deserialize]") {
     YAML::Node node {YAML::NodeType::Map};
-    node["index"] = 1;
-    node["value"] = 42;
+    node[0] = 1;
+    node[1] = 42;
     auto data = fon::yaml::deserialize<std::variant<std::string, int32_t, bool>>(node);
     REQUIRE(data.index() == 1);
     REQUIRE(std::get<1>(data) == 42);
@@ -328,13 +328,13 @@ TEST_CASE("test yaml serialization of std::variant (index 2)", "[yaml][std][vari
     REQUIRE(node.IsMap());
     REQUIRE(node.size() == 2);
 
-    REQUIRE(node["index"].as<size_t>() == 2);
-    REQUIRE(node["value"].as<bool>() == true);
+    REQUIRE(node[0].as<size_t>() == 2);
+    REQUIRE(node[1].as<bool>() == true);
 }
 TEST_CASE("test yaml deserialization of std::variant (index 2)", "[yaml][std][variant][deserialize]") {
     YAML::Node node {YAML::NodeType::Map};
-    node["index"] = 2;
-    node["value"] = true;
+    node[0] = 2;
+    node[1] = true;
     auto data = fon::yaml::deserialize<std::variant<std::string, int32_t, bool>>(node);
     REQUIRE(data.index() == 2);
     REQUIRE(std::get<2>(data) == true);

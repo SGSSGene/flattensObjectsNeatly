@@ -8,9 +8,12 @@ namespace fon {
 
 template <typename ...Args>
 struct proxy<std::variant<Args...>> {
+    static constexpr uint8_t Index = uint8_t{0};
+    static constexpr uint8_t Value = uint8_t{1};
+
     static constexpr void reflect(auto& visitor, auto& self) {
-        size_t index;
-        visitor["index"] % index;
+        uint8_t index;
+        visitor[Index] % index;
         reflect_impl(visitor, self, index);
     }
 
@@ -20,7 +23,7 @@ struct proxy<std::variant<Args...>> {
             if ( N == index ) {
                 using T = std::variant_alternative_t<N, std::variant<Args...>>;
                 auto v = getEmpty<T>();
-                visitor["value"] % v;
+                visitor[Value] % v;
                 self = v;
             } else {
                 reflect_impl<N+1>(visitor, self, index);
@@ -29,10 +32,10 @@ struct proxy<std::variant<Args...>> {
     }
 
     static constexpr void reflect(auto& visitor, auto const& self) {
-        size_t index = self.index();
-        visitor["index"] % index;
+        uint8_t index = self.index();
+        visitor[Index] % index;
         std::visit([&](auto& obj) {
-            visitor["value"] % obj;
+            visitor[Value] % obj;
         }, self);
     }
 };

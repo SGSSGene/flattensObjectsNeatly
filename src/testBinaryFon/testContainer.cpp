@@ -566,16 +566,9 @@ TEST_CASE("test binary serialization of std::variant (index 0)", "[yaml][std][va
     auto buffer = fon::binary::serialize(data);
 
     auto expected = std::vector<std::byte>{
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
-        std::byte{'x'},
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
-        std::byte{'e'},
+        std::byte{0x00},                                                    // map[0].key
+        std::byte{0x00},                                                    // map[1].value
+        std::byte{0x01},                                                    // map[1].key
         std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value.size()
         std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
         std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // map[1].value
@@ -588,16 +581,9 @@ TEST_CASE("test binary serialization of std::variant (index 0)", "[yaml][std][va
 
 TEST_CASE("test binary deserialization of std::variant (index 0)", "[yaml][std][variant][deserialize]") {
     auto input = std::vector<std::byte>{
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
-        std::byte{'x'},
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
-        std::byte{'e'},
+        std::byte{0x00},                                                    // map[0].key
+        std::byte{0x00},                                                    // map[1].value
+        std::byte{0x01},                                                    // map[1].key
         std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value.size()
         std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
         std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // map[1].value
@@ -615,16 +601,9 @@ TEST_CASE("test binary serialization of std::variant (index 1)", "[yaml][std][va
     auto buffer = fon::binary::serialize(data);
 
     auto expected = std::vector<std::byte>{
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
-        std::byte{'x'},
-        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
-        std::byte{'e'},
+        std::byte{0x00},                                                    // map[0].key
+        std::byte{0x01},                                                    // map[1].value
+        std::byte{0x01},                                                    // map[1].key
         std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
     };
     REQUIRE(buffer.size() == expected.size());
@@ -633,16 +612,9 @@ TEST_CASE("test binary serialization of std::variant (index 1)", "[yaml][std][va
 
 TEST_CASE("test binary deserialization of std::variant (index 1)", "[yaml][std][variant][deserialize]") {
     auto input = std::vector<std::byte>{
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
-        std::byte{'x'},
-        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
-        std::byte{'e'},
+        std::byte{0x00},                                                    // map[0].key
+        std::byte{0x01},                                                    // map[1].value
+        std::byte{0x01},                                                    // map[1].key
         std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
     };
 
@@ -656,17 +628,10 @@ TEST_CASE("test binary serialization of std::variant (index 2)", "[yaml][std][va
     auto buffer = fon::binary::serialize(data);
 
     auto expected = std::vector<std::byte>{
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
-        std::byte{'x'},
-        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
-        std::byte{'e'},
-        std::byte{0x01}, // map[1].value
+        std::byte{0x00},                                                    // map[0].key
+        std::byte{0x02},                                                    // map[1].value
+        std::byte{0x1},                                                     // map[1].key
+        std::byte{0x01},                                                    // map[1].value
     };
     REQUIRE(buffer.size() == expected.size());
     CHECK(buffer == expected);
@@ -674,17 +639,10 @@ TEST_CASE("test binary serialization of std::variant (index 2)", "[yaml][std][va
 
 TEST_CASE("test binary deserialization of std::variant (index 2)", "[yaml][std][variant][deserialize]") {
     auto input = std::vector<std::byte>{
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'i'},  std::byte{'n'},  std::byte{'d'},  std::byte{'e'},  // map[0].key
-        std::byte{'x'},
-        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
-        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
-        std::byte{'v'},  std::byte{'a'},  std::byte{'l'},  std::byte{'u'},  // map[1].key
-        std::byte{'e'},
-        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x00},                                                    // map[0].key
+        std::byte{0x02},                                                    // map[1].value
+        std::byte{0x01},                                                    // map[1].key
+        std::byte{0x01},                                                    // map[1].value
     };
 
     auto data = fon::binary::deserialize<std::variant<std::string, int32_t, bool>>(input);
