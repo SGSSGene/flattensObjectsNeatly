@@ -17,17 +17,17 @@ template <typename T>
 auto serialize(T const& _input, std::vector<std::byte> buffer = {}) -> std::vector<std::byte> {
     fon::visit([&]<typename Visitor, typename ValueT>(Visitor& visitor, ValueT const& obj) {
 
-        auto addValue = [&](auto& value) {
+        auto addValue = [&](auto const& value) {
             auto s = sizeof(value);
             buffer.resize(buffer.size() + s);
             std::memcpy(&buffer[buffer.size() - s], &value, s);
         };
-        auto addContigous = [&](auto& begin, size_t len) {
+        auto addContigous = [&](auto const& begin, size_t len) {
             buffer.resize(buffer.size() + len);
             std::memcpy(&buffer[buffer.size() - len], begin, len);
         };
 
-        // Interpret int8_t and uint8_t as ints not chars
+        // Interpret all ints and floats
         if constexpr (std::is_arithmetic_v<ValueT>) {
             addValue(obj);
         } else if constexpr (std::is_same_v<std::string, ValueT>) {
