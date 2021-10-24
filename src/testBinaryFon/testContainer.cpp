@@ -650,42 +650,73 @@ TEST_CASE("test binary deserialization of std::variant (index 2)", "[yaml][std][
     REQUIRE(std::get<2>(data) == true);
 }
 
-/*TEST_CASE("test binary serialization of std::filesystem::path", "[yaml][std][filesystem][path][serialize]") {
+TEST_CASE("test binary serialization of std::filesystem::path", "[yaml][std][filesystem][path][serialize]") {
     auto data = std::filesystem::path{"./myfile.txt"};
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
 
-    REQUIRE(node.IsScalar());
-    REQUIRE(node.as<std::string>() == "./myfile.txt");
+    auto expected = std::vector<std::byte>{
+        std::byte{0x0c}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // string size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'.'},  std::byte{'/'},  std::byte{'m'},  std::byte{'y'},  // actual string
+        std::byte{'f'},  std::byte{'i'},  std::byte{'l'},  std::byte{'e'},
+        std::byte{'.'},  std::byte{'t'},  std::byte{'x'},  std::byte{'t'},
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::filesystem::path", "[yaml][std][filesystem][path][deserialize]") {
-    binary::Node node;
-    node = "./some_file";
-    auto data = fon::binary::deserialize<std::filesystem::path>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x0b}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // string size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'.'},  std::byte{'/'},  std::byte{'s'},  std::byte{'o'},  // actual string
+        std::byte{'m'},  std::byte{'e'},  std::byte{'_'},  std::byte{'f'},
+        std::byte{'i'},  std::byte{'l'},  std::byte{'e'},
+    };
 
-    REQUIRE(data == "./some_file");
+    auto data = fon::binary::deserialize<std::filesystem::path>(input);
+    auto expected = std::filesystem::path{"./some_file"};
+    REQUIRE(data == expected);
 }
 
 TEST_CASE("test binary serialization of std::set<std::filesystem::path>", "[yaml][std][filesystem][set][path][serialize]") {
     auto data = std::set<std::filesystem::path>{{"./myfile.txt"}};
 
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
 
-    REQUIRE(node.IsSequence());
-    REQUIRE(node[0].IsScalar());
-    REQUIRE(node[0].as<std::string>() == "./myfile.txt");
+    auto expected = std::vector<std::byte>{
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0c}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'.'},  std::byte{'/'},  std::byte{'m'},  std::byte{'y'},  // list[0]
+        std::byte{'f'},  std::byte{'i'},  std::byte{'l'},  std::byte{'e'},
+        std::byte{'.'},  std::byte{'t'},  std::byte{'x'},  std::byte{'t'},
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::set<std::filesystem::path>", "[yaml][std][filesystem][set][path][deserialize]") {
-    binary::Node node;
-    node[0] = "./some_file";
-    auto data = fon::binary::deserialize<std::set<std::filesystem::path>>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0c}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'.'},  std::byte{'/'},  std::byte{'m'},  std::byte{'y'},  // list[0]
+        std::byte{'f'},  std::byte{'i'},  std::byte{'l'},  std::byte{'e'},
+        std::byte{'.'},  std::byte{'t'},  std::byte{'x'},  std::byte{'t'},
+    };
 
-    REQUIRE(data.size() == 1);
-    REQUIRE(*data.begin() == "./some_file");
+    auto data = fon::binary::deserialize<std::set<std::filesystem::path>>(input);
+
+    auto expected = std::set<std::filesystem::path>{{"./myfile.txt"}};
+    REQUIRE(data == expected);
 }
 
-TEST_CASE("test binary serialization of std::chrono::time_point<ms>", "[yaml][std][chrono][time_point][serialize]") {
+/*TEST_CASE("test binary serialization of std::chrono::time_point<ms>", "[yaml][std][chrono][time_point][serialize]") {
     auto data = std::chrono::time_point<std::chrono::milliseconds>(std::chrono::milliseconds{42});
     auto node = fon::binary::serialize(data);
 
