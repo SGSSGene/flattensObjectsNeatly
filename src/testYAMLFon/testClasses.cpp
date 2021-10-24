@@ -18,7 +18,6 @@ auto asString(YAML::Node node) -> std::string {
 }
 }
 
-
 TEST_CASE("test yaml serialization of struct A", "[yaml][struct][serialize]") {
     auto data = A{{10, 20, 30}};
     auto node = fon::yaml::serialize(data);
@@ -43,6 +42,7 @@ TEST_CASE("test yaml deserialization of struct A", "[yaml][struct][deserialize]"
     REQUIRE(data.xs == (std::vector<int32_t>{10, 20, 30}));
 }
 
+namespace {
 struct B {
     struct C {
         int32_t x;
@@ -57,6 +57,7 @@ struct B {
         visitor["infos"] % self.infos;
     }
 };
+}
 
 TEST_CASE("test yaml serialization of maps with structs", "[yaml][struct][std][map][serialize]") {
     auto data = B{};
@@ -84,8 +85,6 @@ TEST_CASE("test yaml deserialization of maps with structs", "[yaml][struct][std]
     REQUIRE(node["infos"]["k1"]["x"].IsScalar());
     REQUIRE(node["infos"]["k2"]["x"].IsScalar());
 
-
-
     auto data = fon::yaml::deserialize<B>(node);
 
     REQUIRE(data.infos.size() == 2);
@@ -95,8 +94,7 @@ TEST_CASE("test yaml deserialization of maps with structs", "[yaml][struct][std]
     REQUIRE(data.infos.at("k2").x == 20);
 }
 
-
-
+namespace {
 struct D {
     std::vector<int32_t> xs;
 
@@ -104,7 +102,7 @@ struct D {
         visitor % self.xs;
     }
 };
-
+}
 
 TEST_CASE("test yaml serialization of struct D (no name)", "[yaml][struct][serialize][direct]") {
     auto data = D{{10, 20, 30}};

@@ -86,22 +86,33 @@ auto deserialize(std::vector<std::byte> buffer) -> T {
 
     size_t index{};
 
-    auto readSize = [&]() {
-        size_t obj{};
+    auto readValue = [&](auto& obj) {
+        if (index + sizeof(obj) > buffer.size()) {
+            throw std::runtime_error("error deserializing (corrupted)");
+        }
         std::memcpy(&obj, &buffer[index], sizeof(obj));
         index += sizeof(obj);
+    };
+    auto readSize = [&]() {
+        size_t obj{};
+        readValue(obj);
         return obj;
     };
 
-    auto readValue = [&](auto& obj) {
-        std::memcpy(&obj, &buffer[index], sizeof(obj));
-        index += sizeof(obj);
-    };
+
     auto readContigous = [&](auto begin, size_t len) {
+        if (index + len > buffer.size()) {
+            throw std::runtime_error("error deserializing (corrupted)");
+        }
+
         std::memcpy(begin, &buffer[index], len);
         index += len;
     };
     auto cmpContigous = [&](auto begin, size_t len) {
+        if (index + len > buffer.size()) {
+            throw std::runtime_error("error deserializing (corrupted)");
+        }
+
         auto res = std::memcmp(begin, &buffer[index], len);
         index += len;
         return res;
