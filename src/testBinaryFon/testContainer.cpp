@@ -275,42 +275,117 @@ TEST_CASE("test binary deserialization of std::unordered_set", "[yaml][std][unor
     REQUIRE(data == expected);
 }
 
-/*TEST_CASE("test binary serialization of std::map", "[yaml][std][map][serialize]") {
+TEST_CASE("test binary serialization of std::map", "[yaml][std][map][serialize]") {
     auto data = std::map<std::string, int32_t>{{"k1", 10}, {"k2", 20}, {"k3", 30}};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsMap());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node["k1"].as<int32_t>() == 10);
-    REQUIRE(node["k2"].as<int32_t>() == 20);
-    REQUIRE(node["k3"].as<int32_t>() == 30);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'1'},                                    // map[0].key
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].value
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'2'},                                    // map[1].key
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[2].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'3'},                                    // map[2].key
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[2].value
+    };
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 TEST_CASE("test binary deserialization of std::map", "[yaml][std][map][deserialize]") {
-    binary::Node node;
-    node["k1"] = 10;
-    node["k2"] = 20;
-    node["k3"] = 30;
-    auto data = fon::binary::deserialize<std::map<std::string, int32_t>>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'1'},                                    // map[0].key
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].value
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'2'},                                    // map[1].key
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[2].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'3'},                                    // map[2].key
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[2].value
+    };
+    auto data = fon::binary::deserialize<std::map<std::string, int32_t>>(input);
     REQUIRE(data == (std::map<std::string, int32_t>{{"k1", 10}, {"k2", 20}, {"k3", 30}}));
 }
 
 TEST_CASE("test binary serialization of std::unordered_map", "[yaml][std][unordered_map][serialize]") {
     auto data = std::unordered_map<std::string, int32_t>{{"k1", 10}, {"k2", 20}, {"k3", 30}};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsMap());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node["k1"].as<int32_t>() == 10);
-    REQUIRE(node["k2"].as<int32_t>() == 20);
-    REQUIRE(node["k3"].as<int32_t>() == 30);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expectedHead = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+
+    auto expectedEntryK1 = std::vector<std::byte>{
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'1'},                                    // map[0].key
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].value
+    };
+
+    auto expectedEntryK2 = std::vector<std::byte>{
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'2'},                                    // map[1].key
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+    };
+
+    auto expectedEntryK3 = std::vector<std::byte>{
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[2].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'3'},                                    // map[2].key
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[2].value
+    };
+
+    REQUIRE(buffer.size() == expectedHead.size() + expectedEntryK1.size()
+                           + expectedEntryK2.size() + expectedEntryK3.size());
+    auto cut = [&](size_t idx, size_t len) {
+        return std::vector<std::byte>{
+            begin(buffer) + idx,
+            begin(buffer) + idx + len
+        };
+    };
+
+    CHECK(cut(0, 8) == expectedHead);
+    CHECK((std::set{cut(8, 14), cut(22, 14), cut(36, 14)})
+          == (std::set{expectedEntryK1, expectedEntryK2, expectedEntryK3}));
 }
+
 TEST_CASE("test binary deserialization of std::unordered_map", "[yaml][std][unordered_map][deserialize]") {
-    binary::Node node;
-    node["k1"] = 10;
-    node["k2"] = 20;
-    node["k3"] = 30;
-    auto data = fon::binary::deserialize<std::unordered_map<std::string, int32_t>>(node);
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'1'},                                    // map[0].key
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[0].value
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'2'},                                    // map[1].key
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[1].value
+        std::byte{0x02}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[2].key.size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'k'},  std::byte{'3'},                                    // map[2].key
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // map[2].value
+    };
+
+    auto data = fon::binary::deserialize<std::unordered_map<std::string, int32_t>>(input);
     REQUIRE(data == (std::unordered_map<std::string, int32_t>{{"k1", 10}, {"k2", 20}, {"k3", 30}}));
 }
-TEST_CASE("test binary serialization of std::pair", "[yaml][std][pair][serialize]") {
+
+/*TEST_CASE("test binary serialization of std::pair", "[yaml][std][pair][serialize]") {
     auto data = std::pair<std::string, int32_t>{"hallo welt", 42};
     auto node = fon::binary::serialize(data);
     REQUIRE(node.IsMap());
