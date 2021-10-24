@@ -716,66 +716,100 @@ TEST_CASE("test binary deserialization of std::set<std::filesystem::path>", "[ya
     REQUIRE(data == expected);
 }
 
-/*TEST_CASE("test binary serialization of std::chrono::time_point<ms>", "[yaml][std][chrono][time_point][serialize]") {
+TEST_CASE("test binary serialization of std::chrono::time_point<ms>", "[yaml][std][chrono][time_point][serialize]") {
     auto data = std::chrono::time_point<std::chrono::milliseconds>(std::chrono::milliseconds{42});
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
 
-    REQUIRE(node.IsScalar());
-    REQUIRE(node.as<int>() == 42);
+    auto expected = std::vector<std::byte>{
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::chrono::time_point<ms>", "[yaml][std][chrono][time_point][deserialize]") {
-    binary::Node node;
-    node = 42;
-    auto data = fon::binary::deserialize<std::chrono::time_point<std::chrono::milliseconds>>(node);
-    REQUIRE(data == std::chrono::time_point<std::chrono::milliseconds>(std::chrono::milliseconds{42}));
+    auto input = std::vector<std::byte>{
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+    auto data = fon::binary::deserialize<std::chrono::time_point<std::chrono::milliseconds>>(input);
+
+    auto expected = std::chrono::time_point<std::chrono::milliseconds>(std::chrono::milliseconds{42});
+
+    REQUIRE(data == expected);
 }
 
 TEST_CASE("test binary serialization of std::chrono::time_point<ns>", "[yaml][std][chrono][time_point][serialize]") {
     auto data = std::chrono::time_point<std::chrono::nanoseconds>(std::chrono::nanoseconds{42});
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
+    auto expected = std::vector<std::byte>{
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
 
-    REQUIRE(node.IsScalar());
-    REQUIRE(node.as<int>() == 42);
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::chrono::time_point<ns>", "[yaml][std][chrono][time_point][deserialize]") {
-    binary::Node node;
-    node = 42;
-    auto data = fon::binary::deserialize<std::chrono::time_point<std::chrono::nanoseconds>>(node);
-    REQUIRE(data == std::chrono::time_point<std::chrono::nanoseconds>(std::chrono::nanoseconds{42}));
+    auto input = std::vector<std::byte>{
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+    auto data = fon::binary::deserialize<std::chrono::time_point<std::chrono::nanoseconds>>(input);
+    auto expected = std::chrono::time_point<std::chrono::nanoseconds>(std::chrono::nanoseconds{42});
+
+    REQUIRE(data == expected);
 }
 
 TEST_CASE("test binary serialization of std::filesystem::file_time_type", "[yaml][std][chrono][time_point][serialize]") {
     auto data = std::filesystem::file_time_type(std::chrono::nanoseconds{42});
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
+    auto expected = std::vector<std::byte>{
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
 
-    REQUIRE(node.IsScalar());
-    REQUIRE(node.as<int>() == 42);
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::filesystem::file_time_type", "[yaml][std][chrono][time_point][deserialize]") {
-    binary::Node node;
-    node = 42;
-    auto data = fon::binary::deserialize<std::filesystem::file_time_type>(node);
-    REQUIRE(data == std::filesystem::file_time_type(std::chrono::nanoseconds{42}));
+    auto input = std::vector<std::byte>{
+        std::byte{0x2a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+    auto data = fon::binary::deserialize<std::filesystem::file_time_type>(input);
+    auto expected = std::filesystem::file_time_type(std::chrono::nanoseconds{42});
+
+    REQUIRE(data == expected);
 }
 
 TEST_CASE("test binary serialization of std::chrono::duration", "[yaml][std][chrono][duration][serialize]") {
     using namespace std::chrono_literals;
     auto data = 42ms - 20ms;
-    auto node = fon::binary::serialize(data);
+    auto buffer = fon::binary::serialize(data);
+    auto expected = std::vector<std::byte>{
+        std::byte{0x16}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
 
-    REQUIRE(node.IsScalar());
-    REQUIRE(node.as<int>() == 22);
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::chrono::duration", "[yaml][std][chrono][duration][deserialize]") {
     using namespace std::chrono_literals;
 
-    binary::Node node;
-    node = 22;
+    auto input = std::vector<std::byte>{
+        std::byte{0x16}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+    };
+
     using duration = decltype(42ms - 20ms);
-    auto data = fon::binary::deserialize<duration>(node);
-    REQUIRE(data == (42ms - 20ms));
-}*/
+    auto data = fon::binary::deserialize<duration>(input);
+    auto expected = 42ms - 20ms;
+    REQUIRE(data == expected);
+}
