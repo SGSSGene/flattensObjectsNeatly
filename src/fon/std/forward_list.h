@@ -22,7 +22,12 @@ struct proxy<std::forward_list<T, Args...>> {
 
     static constexpr void reflect(auto& visitor, auto const& self) {
         visitor % fon::List{[&]() { // init read
-            return 0;
+            // counts number of elements in std::forward_list (doesn't have size() method)
+            size_t count{0};
+            for (auto s : self) {
+                count += 1;
+            }
+            return count;
         }, [&](auto& cb) { // read each element
             size_t i{0};
             for (auto const& e: self) {

@@ -28,155 +28,254 @@ TEST_CASE("test binary deserialization of std::string", "[yaml][std][string][des
     };
 
     auto data = fon::binary::deserialize<std::string>(input);
-    REQUIRE(data == std::string{"hallo welt"});
+    auto expected = std::string{"hallo welt"};
+    REQUIRE(data == expected);
 }
 
-/*TEST_CASE("test binary serialization of std::vector", "[yaml][std][vector][serialize]") {
+TEST_CASE("test binary serialization of std::vector", "[yaml][std][vector][serialize]") {
     auto data = std::vector<int32_t>{10, 20, 30};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node[0].as<int32_t>() == 10);
-    REQUIRE(node[1].as<int32_t>() == 20);
-    REQUIRE(node[2].as<int32_t>() == 30);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[2]
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::vector", "[yaml][std][vector][deserialize]") {
-    binary::Node node;
-    node[0] = 10;
-    node[1] = 20;
-    node[2] = 30;
-    auto data = fon::binary::deserialize<std::vector<int32_t>>(node);
-    REQUIRE(data == (std::vector<int32_t>{10, 20, 30}));
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[2]
+    };
+    auto data = fon::binary::deserialize<std::vector<int32_t>>(input);
+    auto expected = std::vector<int32_t>{10, 20, 30};
+    REQUIRE(data == expected);
 }
+
 TEST_CASE("test binary serialization of std::vector with strings", "[yaml][std][vector][string][serialize]") {
     auto data = std::vector<std::string>{"hallo", "welt", "!"};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node[0].as<std::string>() == "hallo");
-    REQUIRE(node[1].as<std::string>() == "welt");
-    REQUIRE(node[2].as<std::string>() == "!");
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // string[0].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // string[0]
+        std::byte{'o'},
+        std::byte{0x04}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // string[1].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'w'},  std::byte{'e'},  std::byte{'l'},  std::byte{'t'},  // string[1]
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // string[2].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'!'},                                                     // string[2]
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::vector with strings", "[yaml][std][vector][deserialize]") {
-    binary::Node node;
-    node[0] = "hallo";
-    node[1] = "welt";
-    node[2] = "!";
-    auto data = fon::binary::deserialize<std::vector<std::string>>(node);
-    REQUIRE(data == (std::vector<std::string>{"hallo", "welt", "!"}));
-}
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x05}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // string[0].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'h'},  std::byte{'a'},  std::byte{'l'},  std::byte{'l'},  // string[0]
+        std::byte{'o'},
+        std::byte{0x04}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // string[1].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'w'},  std::byte{'e'},  std::byte{'l'},  std::byte{'t'},  // string[1]
+        std::byte{0x01}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // string[2].size()
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{'!'},                                                     // string[2]
+    };
 
+    auto data = fon::binary::deserialize<std::vector<std::string>>(input);
+    auto expected = std::vector<std::string>{"hallo", "welt", "!"};
+    REQUIRE(data == expected);
+}
 
 TEST_CASE("test binary serialization of std::array", "[yaml][std][array][serialize]") {
     auto data = std::array<int32_t, 3>{10, 20, 30};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node[0].as<int32_t>() == 10);
-    REQUIRE(node[1].as<int32_t>() == 20);
-    REQUIRE(node[2].as<int32_t>() == 30);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[2]
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
 TEST_CASE("test binary deserialization of std::array", "[yaml][std][array][deserialize]") {
-    binary::Node node;
-    node[0] = 10;
-    node[1] = 20;
-    node[2] = 30;
-    auto data = fon::binary::deserialize<std::array<int32_t, 3>>(node);
-    REQUIRE(data == (std::array<int32_t, 3>{10, 20, 30}));
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // array[2]
+    };
+    auto data = fon::binary::deserialize<std::array<int32_t, 3>>(input);
+    auto expected = std::array<int32_t, 3>{10, 20, 30};
+    REQUIRE(data == expected);
 }
 
 TEST_CASE("test binary serialization of std::list", "[yaml][std][list][serialize]") {
     auto data = std::list<int32_t>{10, 20, 30};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node[0].as<int32_t>() == 10);
-    REQUIRE(node[1].as<int32_t>() == 20);
-    REQUIRE(node[2].as<int32_t>() == 30);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
+
 TEST_CASE("test binary deserialization of std::list", "[yaml][std][list][deserialize]") {
-    binary::Node node;
-    node[0] = 10;
-    node[1] = 20;
-    node[2] = 30;
-    auto data = fon::binary::deserialize<std::list<int32_t>>(node);
-    REQUIRE(data == (std::list<int32_t>{10, 20, 30}));
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+    auto data = fon::binary::deserialize<std::list<int32_t>>(input);
+    auto expected = std::list<int32_t>{10, 20, 30};
+    REQUIRE(data == expected);
 }
+
 TEST_CASE("test binary serialization of std::forward_list", "[yaml][std][forward_list][serialize]") {
     auto data = std::forward_list<int32_t>{10, 20, 30};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node[0].as<int32_t>() == 10);
-    REQUIRE(node[1].as<int32_t>() == 20);
-    REQUIRE(node[2].as<int32_t>() == 30);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
+
 TEST_CASE("test binary deserialization of std::forward_list", "[yaml][std][forward_list][deserialize]") {
-    binary::Node node;
-    node[0] = 10;
-    node[1] = 20;
-    node[2] = 30;
-    auto data = fon::binary::deserialize<std::forward_list<int32_t>>(node);
-    REQUIRE(data == (std::forward_list<int32_t>{10, 20, 30}));
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+    auto data = fon::binary::deserialize<std::forward_list<int32_t>>(input);
+    auto expected = std::forward_list<int32_t>{10, 20, 30};
+    REQUIRE(data == expected);
 }
+
 TEST_CASE("test binary serialization of std::deque", "[yaml][std][deque][serialize]") {
     auto data = std::deque<int32_t>{10, 20, 30};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node[0].as<int32_t>() == 10);
-    REQUIRE(node[1].as<int32_t>() == 20);
-    REQUIRE(node[2].as<int32_t>() == 30);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
+
 TEST_CASE("test binary deserialization of std::deque", "[yaml][std][deque][deserialize]") {
-    binary::Node node;
-    node[0] = 10;
-    node[1] = 20;
-    node[2] = 30;
-    auto data = fon::binary::deserialize<std::deque<int32_t>>(node);
-    REQUIRE(data == (std::deque<int32_t>{10, 20, 30}));
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+    auto data = fon::binary::deserialize<std::deque<int32_t>>(input);
+    auto expected = std::deque<int32_t>{10, 20, 30};
+    REQUIRE(data == expected);
 }
 
 TEST_CASE("test binary serialization of std::set", "[yaml][std][set][serialize]") {
     auto data = std::set<int32_t>{10, 20, 30};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 3);
-    REQUIRE(node[0].as<int32_t>() == 10);
-    REQUIRE(node[1].as<int32_t>() == 20);
-    REQUIRE(node[2].as<int32_t>() == 30);
-}
-TEST_CASE("test binary deserialization of std::set", "[yaml][std][set][deserialize]") {
-    binary::Node node;
-    node[0] = 10;
-    node[1] = 20;
-    node[2] = 30;
-    auto data = fon::binary::deserialize<std::set<int32_t>>(node);
-    REQUIRE(data == (std::set<int32_t>{10, 20, 30}));
-}
-TEST_CASE("test binary serialization of std::unordered_set", "[yaml][std][unordered_set][serialize]") {
-    auto data = std::unordered_set<int32_t>{10, 20, 30};
-    auto node = fon::binary::serialize(data);
-    REQUIRE(node.IsSequence());
-    REQUIRE(node.size() == 3);
-    REQUIRE((std::set<int32_t>{node[0].as<int32_t>(), node[1].as<int32_t>(), node[2].as<int32_t>()}) == (std::set<int32_t>{10, 20, 30}));
-}
-TEST_CASE("test binary deserialization of std::unordered_set", "[yaml][std][unordered_set][deserialize]") {
-    binary::Node node;
-    node[0] = 10;
-    node[1] = 20;
-    node[2] = 30;
-    auto data = fon::binary::deserialize<std::unordered_set<int32_t>>(node);
-    REQUIRE(data.size() == 3);
-    REQUIRE(data.count(10) == 1);
-    REQUIRE(data.count(20) == 1);
-    REQUIRE(data.count(30) == 1);
+    auto buffer = fon::binary::serialize(data);
+
+    auto expected = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+
+    REQUIRE(buffer.size() == expected.size());
+    CHECK(buffer == expected);
 }
 
-TEST_CASE("test binary serialization of std::map", "[yaml][std][map][serialize]") {
+TEST_CASE("test binary deserialization of std::set", "[yaml][std][set][deserialize]") {
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+    auto data = fon::binary::deserialize<std::set<int32_t>>(input);
+    auto expected = std::set<int32_t>{10, 20, 30};
+    REQUIRE(data == expected);
+}
+
+TEST_CASE("test binary serialization of std::unordered_set", "[yaml][std][unordered_set][serialize]") {
+    auto data = std::unordered_set<int32_t>{10, 20, 30};
+    auto buffer = fon::binary::serialize(data);
+
+    REQUIRE(buffer.size() == 20);
+    CHECK(buffer[0] == std::byte{0x03});
+    for (auto i : {1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19}) {
+        CHECK(buffer[i] == std::byte{0});
+    }
+    CHECK((std::set{buffer[8], buffer[12], buffer[16]}) == (std::set{std::byte{10}, std::byte{20}, std::byte{30}}));
+}
+
+TEST_CASE("test binary deserialization of std::unordered_set", "[yaml][std][unordered_set][deserialize]") {
+    auto input = std::vector<std::byte>{
+        std::byte{0x03}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // vector size
+        std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00},
+        std::byte{0x0a}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[0]
+        std::byte{0x14}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[1]
+        std::byte{0x1e}, std::byte{0x00}, std::byte{0x00}, std::byte{0x00}, // list[2]
+    };
+    auto data = fon::binary::deserialize<std::unordered_set<int32_t>>(input);
+    auto expected = std::unordered_set<int32_t>{10, 20, 30};
+    REQUIRE(data == expected);
+}
+
+/*TEST_CASE("test binary serialization of std::map", "[yaml][std][map][serialize]") {
     auto data = std::map<std::string, int32_t>{{"k1", 10}, {"k2", 20}, {"k3", 30}};
     auto node = fon::binary::serialize(data);
     REQUIRE(node.IsMap());
