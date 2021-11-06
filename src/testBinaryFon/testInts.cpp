@@ -1,4 +1,4 @@
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 #include <fon/binary.h>
 
 TEST_CASE("test binary serialization of int8_t", "[binary][int8_t][serialize]") {

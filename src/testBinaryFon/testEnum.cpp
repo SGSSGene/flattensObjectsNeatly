@@ -1,4 +1,4 @@
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 #include <fon/binary.h>
 #include <fon/std/all.h>
 
