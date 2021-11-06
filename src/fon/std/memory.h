@@ -24,7 +24,7 @@ struct proxy<std::unique_ptr<T>> {
     }
 
     static constexpr void reflect(auto& visitor, auto const& self) {
-        visitor % fon::List{[&]() { // init read
+        visitor % fon::List{[&]() -> size_t { // init read
             return self?1:0;
         }, [&](auto& cb) { // read each element
             if (self) {
