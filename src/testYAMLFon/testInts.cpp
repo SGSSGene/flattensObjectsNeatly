@@ -1,4 +1,4 @@
-#include <catch/catch.hpp>
+#include <catch2/catch.hpp>
 #include <fon/yaml.h>
 
 TEST_CASE("test yaml serialization of int8_t", "[yaml][int8_t][serialize]") {
