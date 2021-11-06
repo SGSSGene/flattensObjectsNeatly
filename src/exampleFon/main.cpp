@@ -1,15 +1,14 @@
 #include <fon/Visitor.h>
 #include <fon/yaml.h>
+#include <fon/std/all.h>
 
-#include <iostream>
-#include <cstring>
 #include <bitset>
-#include <vector>
 #include <chrono>
-#include <tuple>
+#include <cstring>
 #include <functional>
-
-
+#include <iostream>
+#include <tuple>
+#include <vector>
 
 template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 
@@ -42,7 +41,7 @@ struct A {
 
     template <typename Self>
     static constexpr void reflect(auto& visitor, Self& self) {
-/*        visitor["x"] % self.x;
+        visitor["x"] % self.x;
         visitor["y"] % self.y;
         visitor["z"] % self.z.x;
         visitor["w"] % self.w;
@@ -52,7 +51,7 @@ struct A {
             std::cout << "is const\n";
         } else {
             std::cout << "is not const\n";
-        }*/
+        }
     }
 };
 

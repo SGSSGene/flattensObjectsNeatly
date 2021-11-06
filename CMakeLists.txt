@@ -44,3 +44,11 @@ target_link_libraries(testYAMLFon
     Catch2
     yaml-cpp
 )
+
+add_executable(exampleFon
+    src/exampleFon/main.cpp
+)
+target_link_libraries(exampleFon
+    fon
+    yaml-cpp
+)
