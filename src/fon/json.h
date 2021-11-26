@@ -6,9 +6,10 @@
 #include "utils.h"
 
 #include <cassert>
-#include <yaml-cpp/yaml.h>
+#include <json/json.h>
+#include <functional>
 
-namespace fon::yaml {
+namespace fon::json {
 
 namespace details {
 
@@ -21,21 +22,21 @@ struct PointerT : Pointer {
 };
 
 template <typename T>
-auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
+auto serialize(T const& _input, Json::Value start = {}) -> Json::Value {
     auto& input = _input;
 
-    YAML::Node top;
+    Json::Value top;
 
     std::vector<std::unique_ptr<Pointer>> pointers;
 
     fon::visit([&]<typename Visitor, typename ValueT>(Visitor& visitor, ValueT const& obj) {
 
         auto stackVisit = [&](auto& obj) {
-            YAML::Node a = top;
-            top.reset();
+            Json::Value a = top;
+            top.clear();
             visitor % obj;
-            YAML::Node b = top;
-            top.reset(a);
+            Json::Value b = top;
+            top.swap(a);
             return b;
         };
 
@@ -45,7 +46,7 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
             top = static_cast<int16_t>(obj);
         } else if constexpr (std::is_arithmetic_v<ValueT>
                       or std::is_same_v<std::string, ValueT>
-                      or std::is_same_v<YAML::Node, ValueT>) {
+                      or std::is_same_v<Json::Value, ValueT>) {
             top = obj;
         } else if constexpr (std::is_same_v<ValueT, std::string_view>
                             or std::is_same_v<ValueT, char const*>) {
@@ -54,21 +55,21 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
             auto adapter = fon::list_adapter{obj};
             adapter.visit([&](size_t key, auto& value) {
                 auto right = stackVisit(value);
-                top.push_back(right);
+                top.append(right);
             });
         } else if constexpr (fon::has_map_adapter_v<ValueT>) {
             auto adapter = fon::map_adapter{obj};
             adapter.visit([&](auto& key, auto& value) {
                 auto left  = stackVisit(key);
                 auto right = stackVisit(value);
-                top[left] = right;
+                top[left.asString()] = right;
             });
         } else if constexpr (fon::has_struct_adapter_v<ValueT>) {
             auto adapter = fon::struct_adapter{obj};
             adapter.visit([&](auto& key, auto& value) {
                 auto left  = stackVisit(key);
                 auto right = stackVisit(value);
-                top[left] = right;
+                top[left.asString()] = right;
             }, [&](auto& value) {
                 top = stackVisit(value);
             });
@@ -94,21 +95,22 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
 }
 
 
-struct yaml_error : std::runtime_error {
-    yaml_error(std::string s, YAML::Node const& node)
-        : runtime_error(s + " in line " + std::to_string(node.Mark().line) + ":" + std::to_string(node.Mark().column) + " (" + std::to_string(node.Mark().pos) + ")")
+struct json_error : std::runtime_error {
+    json_error(std::string s, Json::Value const& node)
+        : runtime_error(s)
+//        : runtime_error(s + " in line " + std::to_string(node.Mark().line) + ":" + std::to_string(node.Mark().column) + " (" + std::to_string(node.Mark().pos) + ")")
     {}
 };
 
 struct StackGuard final {
-    std::vector<YAML::Node>& stack;
+    std::vector<Json::Value>& stack;
 
-    StackGuard(std::vector<YAML::Node>& stack, YAML::Node n)
+    StackGuard(std::vector<Json::Value>& stack, Json::Value n)
         : stack{stack}
     {
         stack.push_back(n);
     }
-    void reset(YAML::Node n) {
+    void reset(Json::Value n) {
         stack.pop_back();
         stack.push_back(n);
     }
@@ -118,21 +120,21 @@ struct StackGuard final {
 };
 
 template <typename T>
-auto deserialize(YAML::Node root) -> T {
+auto deserialize(Json::Value root) -> T {
 
     auto res = getEmpty<T>();
-    std::vector<YAML::Node> nodeStack{root};
+    std::vector<Json::Value> nodeStack{root};
 
     std::vector<std::function<void()>> fixPointers;
     fon::visit([&]<typename Visitor, typename ValueT>(Visitor& visitor, ValueT& obj) {
         auto top = nodeStack.back();
 
-        if (not top.IsDefined()) {
+        if (top.isNull()) {
             return;
         }
 
         try {
-            if constexpr (std::is_same_v<YAML::Node, ValueT>) {
+            if constexpr (std::is_same_v<Json::Value, ValueT>) {
                 obj = top;
             } else if constexpr (std::is_arithmetic_v<ValueT>
                       or std::is_same_v<std::string, ValueT>) {
@@ -142,42 +144,64 @@ auto deserialize(YAML::Node root) -> T {
                               or std::is_same_v<ValueT, uint16_t>
                               or std::is_same_v<ValueT, int32_t>
                               or std::is_same_v<ValueT, uint32_t>) {
-                    auto v = top.template as<int64_t>();
+                    auto v = top.asInt64();
                     if (v < std::numeric_limits<ValueT>::min() or v > std::numeric_limits<ValueT>::max()) {
                         throw std::runtime_error("value out of range");
                     }
                     obj = v;
+                } else if constexpr (std::is_same_v<ValueT, int64_t>) {
+                    obj = top.asInt64();
+                } else if constexpr (std::is_same_v<ValueT, uint64_t>) {
+                    obj = top.asUInt64();
+                } else if constexpr (std::is_same_v<ValueT, float>) {
+                    obj = top.asFloat();
+                } else if constexpr (std::is_same_v<ValueT, double>) {
+                    obj = top.asDouble();
+                } else if constexpr (std::is_same_v<ValueT, bool>) {
+                    obj = top.asBool();
+                } else if constexpr (std::is_same_v<ValueT, std::string>) {
+                    obj = top.asString();
                 } else {
-                    // !TODO no check, we just hope it works
-                    obj = top.template as<ValueT>();
+                    []<bool flag = false>() {
+                        static_assert(flag, "no known way to parse this datatype");
+                    }();
                 }
             } else if constexpr (fon::has_list_adapter_v<ValueT>) {
                 auto adapter = fon::list_adapter<ValueT>{obj, top.size()};
                 adapter.visit([&](size_t idx, auto& value) {
-                    auto g = StackGuard{nodeStack, top[idx]};
+                    auto g = StackGuard{nodeStack, top[Json::ArrayIndex(idx)]};
                     visitor % value;
                 });
             } else if constexpr (fon::has_map_adapter_v<ValueT>) {
                 auto adapter = fon::map_adapter<ValueT>{obj, top.size()};
-                auto iter = top.begin();
+                auto members = top.getMemberNames();
+                auto iter = begin(members);
                 adapter.visit([&](auto& key, auto& value) {
-                    auto g = StackGuard{nodeStack, iter->first};
+                    auto g = StackGuard{nodeStack, *iter};
                     visitor % key;
-                    g.reset(iter->second);
+                    g.reset(top[*iter]);
                     visitor % value;
                     ++iter;
                 });
             } else if constexpr (fon::has_struct_adapter_v<ValueT>) {
                 auto adapter = fon::struct_adapter{obj};
                 adapter.visit([&](auto& key, auto& value) {
-                    //!TODO
-                    //!WORKAROUND for bug: https://github.com/jbeder/yaml-cpp/issues/979
-                    auto fakeKey = [&]() {
-                        YAML::Emitter emit;
-                        emit << serialize(key);
-                        return std::string{emit.c_str()};
+                    auto str_key = [&]() -> std::string {
+                        using Key = std::decay_t<decltype(key)>;
+                        if constexpr (std::is_same_v<Key, std::string>
+                                    or std::is_same_v<Key, std::string_view>
+                                    or std::is_same_v<Key, char const*>) {
+                            return key;
+                        } else if constexpr (std::is_arithmetic_v<Key>) {
+                            return std::to_string(key);
+                        } else {
+                            []<bool flag = false>() {
+                                static_assert(flag, "unknow type for key");
+                            }();
+                        }
+                        return "";
                     }();
-                    auto g = StackGuard{nodeStack, top[fakeKey]};
+                    auto g = StackGuard{nodeStack, top[str_key]};
                     visitor % value;
                 }, [&](auto& value) {
                     visitor % value;
@@ -202,10 +226,10 @@ auto deserialize(YAML::Node root) -> T {
                     static_assert(fon::has_reflect_v<ValueT>, "fon: reflect or proxy missing (deserialization)");
                 }();
             }
-        } catch(yaml_error const&) {
+        } catch(json_error const&) {
             throw;
         } catch(...) {
-            std::throw_with_nested(yaml_error("error reading yaml file ", top));
+            std::throw_with_nested(json_error("error reading json file ", top));
         }
     }, res);
 
