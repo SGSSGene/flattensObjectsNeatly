@@ -122,9 +122,6 @@ auto serialize(T const& _input, Json::Value start = {}) -> Json::Value {
                     static_assert(sizeof(unsigned long long) == sizeof(uint64_t), "unsigned long long and uint64_t must have the same size");
                 }();
                 top = uint64_t(obj);
-            } else if constexpr (std::is_same_v<__uint128_t, ValueT>
-                                 or std::is_same_v<__int128_t, ValueT>) {
-                top = to_string(obj);
             } else {
                 top = obj;
             }
