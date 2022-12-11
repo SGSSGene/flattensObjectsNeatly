@@ -1,0 +1,31 @@
+translationSets:
+  - name: fon
+    type: library
+    language: c++
+    dependencies:
+      - jsoncpp
+      - stdlib
+      - yaml-cpp
+  - name: exampleFon
+    type: executable
+    language: c++
+    dependencies:
+      - fon
+  - name: testBinaryFon
+    type: executable
+    language: c++
+    dependencies:
+      - fon
+      - Catch2
+  - name: testJSONFon
+    type: executable
+    language: c++
+    dependencies:
+      - fon
+      - Catch2
+  - name: testYAMLFon
+    type: executable
+    language: c++
+    dependencies:
+      - fon
+      - Catch2
