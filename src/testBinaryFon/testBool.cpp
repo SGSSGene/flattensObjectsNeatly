@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <fon/binary.h>
 
 TEST_CASE("test binary serialization of bool", "[binary][bool][serialize]") {

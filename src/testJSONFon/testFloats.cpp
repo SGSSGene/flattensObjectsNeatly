@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <fon/json.h>
 
 TEST_CASE("test json serialization of float", "[json][float][serialize]") {
