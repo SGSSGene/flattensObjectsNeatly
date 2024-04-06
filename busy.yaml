@@ -6,6 +6,7 @@ translationSets:
       - jsoncpp
       - stdlib
       - yaml-cpp
+      - reflect
   - name: exampleFon
     type: executable
     language: c++
@@ -29,3 +30,6 @@ translationSets:
     dependencies:
       - fon
       - Catch2
+  - name: reflect
+    type: library
+    language: c++

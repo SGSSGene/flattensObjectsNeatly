@@ -3,6 +3,7 @@
 #include "Visitor.h"
 
 #include <memory>
+#include <reflect/reflect.h>
 #include <string_view>
 #include <type_traits>
 
@@ -217,6 +218,29 @@ struct Visitor {
     }
 };
 }
+
+template <typename T>
+concept Aggregate = std::is_aggregate_v<std::remove_cvref_t<T>>
+                    && std::is_class_v<std::remove_cvref_t<T>>
+                    && !std::is_pointer_v<std::remove_cvref_t<T>>;
+
+
+template <typename T>
+    requires Aggregate<T>
+struct proxy<T> {
+    constexpr static void reflect(auto& visitor, auto& self) {
+        if constexpr (requires() { T::reflect(visitor, self); }) {
+            T::reflect(visitor, self);
+        } else {
+        reflect::for_each([&](const auto I) {
+            auto name   = std::string{reflect::member_name<I>(self)};
+            auto& value = reflect::get<I>(self);
+            visitor[name] % value;
+        }, self);
+        }
+    }
+};
+
 
 
 template <has_reflect_or_proxy_v Data>
