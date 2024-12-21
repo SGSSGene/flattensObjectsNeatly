@@ -7,7 +7,7 @@ add_library(fon::fon ALIAS fon)
 target_compile_features(fon INTERFACE cxx_std_20)
 target_link_libraries(fon
     INTERFACE
-    reflect
+    reflect::reflect
     yaml-cpp
     jsoncpp_static
 )

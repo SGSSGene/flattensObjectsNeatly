@@ -5,7 +5,7 @@
 #include "Visitor.h"
 
 #include <memory>
-#include <reflect/reflect.h>
+#include <reflect>
 #include <string_view>
 #include <type_traits>
 
