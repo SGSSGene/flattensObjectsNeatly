@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2024 Simon Gene Gottlieb
+// SPDX-License-Identifier: CC0-1.0
 #include <catch2/catch_all.hpp>
 #include <fon/yaml.h>
 #include <fon/std/all.h>
