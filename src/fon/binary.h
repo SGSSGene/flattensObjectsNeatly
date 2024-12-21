@@ -41,7 +41,7 @@ auto serialize(T const& _input, std::vector<std::byte> buffer = {}) -> std::vect
         } else if constexpr (fon::has_list_adapter_v<ValueT>) {
             auto adapter = fon::list_adapter{obj};
             addValue(adapter.size());
-            adapter.visit([&](size_t key, auto& value) {
+            adapter.visit([&](size_t /*key*/, auto& value) {
                 visitor % value;
             });
         } else if constexpr (fon::has_map_adapter_v<ValueT>) {
@@ -132,7 +132,7 @@ auto deserialize(std::vector<std::byte> buffer) -> T {
         } else if constexpr (fon::has_list_adapter_v<ValueT>) {
             auto size = readSize();
             auto adapter = fon::list_adapter<ValueT>{obj, size};
-            adapter.visit([&](size_t idx, auto& value) {
+            adapter.visit([&](size_t /*idx*/, auto& value) {
                 visitor % value;
             });
         } else if constexpr (fon::has_map_adapter_v<ValueT>) {

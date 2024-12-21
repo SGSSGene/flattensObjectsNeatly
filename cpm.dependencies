@@ -1,0 +1,38 @@
+{
+  "format_version": "1",
+  "packages": [
+    {
+      "if": "PROJECT_IS_TOP_LEVEL",
+      "name": "Catch2",
+      "version": "3.7.1",
+      "github_repository": "catchorg/Catch2"
+    },
+    {
+      "name": "reflect",
+      "version": "1.2.4",
+      "github_repository": "boost-ext/reflect",
+      "cmake_commands": [
+        "add_library(reflect INTERFACE)",
+        "target_include_directories(reflect SYSTEM INTERFACE ${CPM_CURRENT_SOURCE_DIR})",
+        "target_compile_options(reflect INTERFACE -std=c++20)",
+        "add_library(reflect::reflect ALIAS reflect)"
+      ]
+    },
+    {
+      "name": "yaml-cpp",
+      "version": "0.8.0",
+      "github_repository": "jbeder/yaml-cpp",
+      "git_tag": "{VERSION}"
+    },
+    {
+      "name": "jsoncpp",
+      "version": "1.9.6",
+      "github_repository": "open-source-parsers/jsoncpp",
+      "git_tag": "{VERSION}",
+      "options": [
+        "JSONCPP_WITH_TESTS OFF"
+      ]
+    }
+
+  ]
+}

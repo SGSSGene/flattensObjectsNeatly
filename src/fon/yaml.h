@@ -22,7 +22,7 @@ struct PointerT : Pointer {
 };
 
 template <typename T>
-auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
+auto serialize(T const& _input, [[maybe_unused]] YAML::Node start = {}) -> YAML::Node {
     auto& input = _input;
 
     YAML::Node top;
@@ -57,7 +57,7 @@ auto serialize(T const& _input, YAML::Node start = {}) -> YAML::Node {
             top = std::string{obj};
         } else if constexpr (fon::has_list_adapter_v<ValueT>) {
             auto adapter = fon::list_adapter{obj};
-            adapter.visit([&](size_t key, auto& value) {
+            adapter.visit([&](size_t /*key*/, auto& value) {
                 auto right = stackVisit(value);
                 top.push_back(right);
             });

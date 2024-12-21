@@ -87,7 +87,7 @@ auto from_string(std::string_view s) -> T {
 
 
 template <typename T>
-auto serialize(T const& _input, Json::Value start = {}) -> Json::Value {
+auto serialize(T const& _input, [[maybe_unused]] Json::Value start = {}) -> Json::Value {
     auto& input = _input;
 
     Json::Value top;
@@ -131,7 +131,7 @@ auto serialize(T const& _input, Json::Value start = {}) -> Json::Value {
         } else if constexpr (fon::has_list_adapter_v<ValueT>) {
             auto adapter = fon::list_adapter{obj};
             top = Json::arrayValue;
-            adapter.visit([&](size_t key, auto& value) {
+            adapter.visit([&](size_t /*key*/, auto& value) {
                 auto right = stackVisit(value);
                 top.append(right);
             });
@@ -175,8 +175,8 @@ auto serialize(T const& _input, Json::Value start = {}) -> Json::Value {
 
 
 struct json_error : std::runtime_error {
-    json_error(std::string s, Json::Value const& node)
-        : runtime_error(s)
+    json_error(std::string s, Json::Value const& /*node*/)
+        : runtime_error{s}
 //        : runtime_error(s + " in line " + std::to_string(node.Mark().line) + ":" + std::to_string(node.Mark().column) + " (" + std::to_string(node.Mark().pos) + ")")
     {}
 };
